@@ -94,6 +94,27 @@ textarea{resize:none;overflow:hidden}
 .severity-high{background:rgba(255,77,109,0.15);color:#FF4D6D}
 .thinking-state{display:flex;align-items:center;gap:10px;padding:20px;color:#5A6880;font-size:14px}
 .spinner{width:16px;height:16px;border:2px solid rgba(0,212,200,0.2);border-top-color:#00D4C8;border-radius:50%;animation:spin 1s linear infinite;flex-shrink:0}
+/* People layer */
+.person-card{display:flex;align-items:center;gap:12px;padding:12px 14px;background:#131826;border-radius:12px;border:1px solid rgba(255,255,255,0.07);margin-bottom:8px;cursor:pointer;transition:all .18s;animation:fadein .2s ease}
+.person-card:hover{border-color:rgba(0,212,200,0.25);background:rgba(0,212,200,0.04)}
+.person-avatar{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,rgba(0,212,200,0.3),rgba(74,158,255,0.3));display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:#E2E8F4;flex-shrink:0;text-transform:uppercase}
+.person-info{flex:1;min-width:0}
+.person-name{font-size:14px;font-weight:600;color:#E2E8F4}
+.person-meta{font-size:11px;color:#5A6880;margin-top:2px}
+.person-badge{font-size:10px;padding:3px 8px;border-radius:100px;background:rgba(0,212,200,0.1);color:#00D4C8;font-family:monospace;flex-shrink:0}
+.interaction-item{padding:10px 13px;background:#131826;border-radius:10px;border:1px solid rgba(255,255,255,0.07);margin-bottom:7px}
+.interaction-meta{font-size:10px;color:#5A6880;font-family:monospace;margin-bottom:5px;display:flex;gap:10px;flex-wrap:wrap}
+.interaction-text{font-size:13px;color:#CBD5E1;line-height:1.6}
+.sentiment-pill{padding:2px 7px;border-radius:100px;font-size:10px}
+.s-positive{background:rgba(0,201,167,0.15);color:#00C9A7}
+.s-negative{background:rgba(255,77,109,0.15);color:#FF4D6D}
+.s-tense{background:rgba(240,165,0,0.15);color:#F0A500}
+.s-warm{background:rgba(74,158,255,0.15);color:#4A9EFF}
+.s-suspicious{background:rgba(168,85,247,0.15);color:#A855F7}
+.s-neutral{background:rgba(255,255,255,0.08);color:#5A6880}
+.profile-section{background:#131826;border:1px solid rgba(0,212,200,0.2);border-radius:12px;padding:14px;margin-bottom:10px}
+.profile-section-title{font-size:10px;color:#00D4C8;letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px;font-family:monospace}
+.profile-section-body{font-size:13px;color:#CBD5E1;line-height:1.65}
 /* Voice layer */
 #micbtn{width:42px;height:42px;border-radius:12px;border:none;background:#1B2338;color:#5A6880;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .18s}
 #micbtn.listening{background:rgba(255,77,109,0.2);color:#FF4D6D;animation:mic-pulse 1s ease-in-out infinite}
@@ -140,9 +161,10 @@ textarea{resize:none;overflow:hidden}
 
     <div style="padding:10px 8px;flex:1">
       <button class="nav-btn active" data-tab="chat"    onclick="switchTab('chat')"><span style="font-size:11px">◉</span>Chat</button>
+      <button class="nav-btn"        data-tab="people"  onclick="switchTab('people')"><span style="font-size:11px">◈</span>People</button>
       <button class="nav-btn"        data-tab="insights" onclick="switchTab('insights')"><span style="font-size:11px">◆</span>Insights</button>
-      <button class="nav-btn"        data-tab="memory"  onclick="switchTab('memory')"><span style="font-size:11px">◈</span>Memory</button>
-      <button class="nav-btn"        data-tab="log"     onclick="switchTab('log')"><span style="font-size:11px">◎</span>Daily Log</button>
+      <button class="nav-btn"        data-tab="memory"  onclick="switchTab('memory')"><span style="font-size:11px">◎</span>Memory</button>
+      <button class="nav-btn"        data-tab="log"     onclick="switchTab('log')"><span style="font-size:11px">▣</span>Daily Log</button>
     </div>
 
     <div style="padding:12px 8px 20px;border-top:1px solid rgba(255,255,255,0.07)">
@@ -194,6 +216,58 @@ textarea{resize:none;overflow:hidden}
           <div class="vtoggle-dot"></div>APLOS speaks responses
         </button>
         <span class="voice-status" id="voiceStatus">Ready</span>
+      </div>
+    </div>
+
+    <!-- People panel -->
+    <div id="panel-people" class="panel">
+      <p class="section-desc">Everyone in your world. APLOS builds a living profile on each person from every interaction you log.</p>
+
+      <div class="add-row">
+        <input id="peopleinput" class="add-input" placeholder="Add a person (name)…" onkeydown="if(event.key==='Enter')addPerson()">
+        <button class="add-btn" onclick="addPerson()">+</button>
+      </div>
+
+      <div id="peoplelist"></div>
+
+      <!-- Person detail view -->
+      <div id="person-detail" style="display:none">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+          <button onclick="closePerson()" style="background:none;border:none;color:#5A6880;cursor:pointer;font-size:20px;padding:0">←</button>
+          <div>
+            <div id="person-name-title" style="font-size:18px;font-weight:700"></div>
+            <div id="person-rel-title" style="font-size:12px;color:#5A6880;margin-top:2px"></div>
+          </div>
+          <button onclick="analyzePersonProfile()" style="margin-left:auto;padding:7px 14px;background:rgba(0,212,200,0.1);border:1px solid rgba(0,212,200,0.25);border-radius:100px;color:#00D4C8;font-size:12px;cursor:pointer;font-family:inherit">◆ Analyze</button>
+        </div>
+
+        <!-- Quick edit -->
+        <div style="display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap">
+          <input id="person-rel-input" class="add-input" style="flex:1;min-width:120px;font-size:13px;padding:8px 12px" placeholder="Relationship (friend, coworker…)">
+          <button onclick="savePersonRel()" class="add-btn" style="padding:8px 14px;font-size:13px">Save</button>
+        </div>
+
+        <!-- Log conversation -->
+        <div style="font-size:11px;color:#5A6880;letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px">Log Interaction</div>
+        <textarea id="person-log-input" class="add-input" style="width:100%;min-height:80px;resize:none;margin-bottom:8px;line-height:1.5" placeholder="What happened? What was said? Where were you? How did they seem?"></textarea>
+        <div style="display:flex;gap:6px;margin-bottom:18px">
+          <select id="person-log-sentiment" style="flex:1;background:#1B2338;border:1px solid rgba(255,255,255,0.08);border-radius:10px;color:#E2E8F4;padding:9px 12px;font-size:13px;outline:none;font-family:inherit">
+            <option value="neutral">😐 Neutral</option>
+            <option value="positive">😊 Positive</option>
+            <option value="negative">😟 Negative</option>
+            <option value="tense">😤 Tense</option>
+            <option value="warm">🤝 Warm</option>
+            <option value="suspicious">🤨 Suspicious</option>
+          </select>
+          <button onclick="logPersonInteraction()" class="add-btn" style="padding:9px 16px;font-size:13px">Log</button>
+        </div>
+
+        <!-- Profile built by APLOS -->
+        <div id="person-profile-box" style="display:none;margin-bottom:16px"></div>
+
+        <!-- Interaction history -->
+        <div style="font-size:11px;color:#5A6880;letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">Interaction History</div>
+        <div id="person-interactions"></div>
       </div>
     </div>
 
@@ -287,6 +361,8 @@ let syncing     = false;
 let chatHistory = [];
 let memories    = [];
 let logs        = [];
+let people      = []; // [{id, name, relationship, interactions:[{ts,text,sentiment}], profile:''}]
+let currentPersonId = null;
 
 const DEFAULT_MEMORIES = [
   "iPhone user",
@@ -354,6 +430,7 @@ async function loadFromCloud() {
     else memories = DEFAULT_MEMORIES;
     if (data.logs) logs = data.logs.map(l => ({...l, ts: new Date(l.ts)}));
     if (data.mode) currentMode = data.mode;
+    if (data.people) people = data.people;
   } catch(e) {
     memories = DEFAULT_MEMORIES;
   }
@@ -367,7 +444,7 @@ async function pushSync() {
     await fetch(workerUrl + "/sync", {
       method: "POST",
       headers: { "Content-Type": "application/json", "x-sync-key": syncKey },
-      body: JSON.stringify({ memories, logs, mode: currentMode }),
+      body: JSON.stringify({ memories, logs, mode: currentMode, people }),
     });
     setSyncStatus("synced");
   } catch(e) {
@@ -384,6 +461,7 @@ async function pullSync() {
     if (data.memories) { memories = data.memories; renderMems(); }
     if (data.logs)     { logs = data.logs.map(l=>({...l,ts:new Date(l.ts)})); renderLogs(); }
     if (data.mode)     { currentMode = data.mode; setMode(currentMode, false); }
+    if (data.people)   { people = data.people; if(currentTab==="people") renderPeople(); }
     setSyncStatus("synced");
   } catch(e) { setSyncStatus("error"); }
 }
@@ -403,12 +481,13 @@ function closeSidebar()  { sidebarOpen=false; document.getElementById("sidebar")
 // ── Tabs ───────────────────────────────────────────────
 function switchTab(t) {
   currentTab = t; closeSidebar();
-  document.getElementById("tabTitle").textContent = t==="chat"?"Chat":t==="insights"?"APLOS Insights":t==="memory"?"Memory Bank":"Daily Log";
+  document.getElementById("tabTitle").textContent = t==="chat"?"Chat":t==="people"?"People":t==="insights"?"APLOS Insights":t==="memory"?"Memory Bank":"Daily Log";
   document.querySelectorAll(".nav-btn").forEach(b => b.classList.toggle("active", b.dataset.tab===t));
   document.getElementById("panel-chat").style.display = t==="chat" ? "flex" : "none";
-  ["insights","memory","log"].forEach(id => document.getElementById("panel-"+id).style.display = id===t?"block":"none");
+  ["people","insights","memory","log"].forEach(id => document.getElementById("panel-"+id).style.display = id===t?"block":"none");
   if (t==="memory") renderMems();
   if (t==="log")    renderLogs();
+  if (t==="people") renderPeople();
 }
 
 // ── Mode ───────────────────────────────────────────────
@@ -605,19 +684,55 @@ function toggleSpeak() {
 }
 
 function speakResponse(text) {
-  if (!speakEnabled || !synth) return;
-  synth.cancel();
-  // Clean text for speech — remove markdown symbols
+  if (!speakEnabled) return;
   const clean = text
     .replace(/[#*`_~]/g, "")
-    .replace(/\n+/g, ". ")
-    .replace(/APLOS·[^.]+\./g, "")
+    .replace(/APLOS\s*·[^\n]*/g, "")
+    .replace(/\n+/g, " ")
     .trim();
   if (!clean) return;
-  const utt = new SpeechSynthesisUtterance(clean);
-  utt.voice = preferredVoice;
-  utt.rate  = 1.05;
-  utt.pitch = 1.0;
+
+  // Try ElevenLabs first, fall back to browser synth
+  speakElevenLabs(clean).catch(() => speakBrowser(clean));
+}
+
+async function speakElevenLabs(text) {
+  document.getElementById("micbtn").classList.add("speaking");
+  setVoiceStatus("APLOS speaking…");
+  try {
+    const res = await fetch(workerUrl + "/speak", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-sync-key": syncKey },
+      body: JSON.stringify({ text })
+    });
+    if (!res.ok) throw new Error("ElevenLabs failed");
+    const audioBlob = await res.blob();
+    const audioUrl  = URL.createObjectURL(audioBlob);
+    const audio     = new Audio(audioUrl);
+    audio.onended = () => {
+      document.getElementById("micbtn").classList.remove("speaking");
+      setVoiceStatus("Ready");
+      URL.revokeObjectURL(audioUrl);
+    };
+    audio.onerror = () => {
+      document.getElementById("micbtn").classList.remove("speaking");
+      setVoiceStatus("Ready");
+    };
+    await audio.play();
+  } catch(e) {
+    document.getElementById("micbtn").classList.remove("speaking");
+    setVoiceStatus("Ready");
+    throw e;
+  }
+}
+
+function speakBrowser(text) {
+  if (!synth) return;
+  synth.cancel();
+  const utt = new SpeechSynthesisUtterance(text);
+  utt.voice  = preferredVoice;
+  utt.rate   = 1.0;
+  utt.pitch  = 1.0;
   utt.volume = 1.0;
   utt.onstart = () => {
     document.getElementById("micbtn").classList.add("speaking");
@@ -759,6 +874,184 @@ function addLog(){
   const inp=document.getElementById("loginput"); if(!inp.value.trim())return;
   logs.push({text:inp.value.trim(),ts:new Date().toISOString()}); inp.value="";
   renderLogs(); pushSync();
+}
+
+// ── People Layer ──────────────────────────────────────
+function renderPeople() {
+  const list = document.getElementById("peoplelist");
+  const detail = document.getElementById("person-detail");
+  list.style.display = "block";
+  detail.style.display = "none";
+  list.innerHTML = "";
+  if (!people.length) {
+    list.innerHTML = '<div class="empty">No people logged yet. Add someone you met or know.</div>';
+    return;
+  }
+  [...people].reverse().forEach(p => {
+    const d = document.createElement("div");
+    d.className = "person-card";
+    d.onclick = () => openPerson(p.id);
+    const initials = p.name.split(" ").map(w=>w[0]).join("").slice(0,2);
+    const lastSeen = p.interactions?.length
+      ? new Date(p.interactions[p.interactions.length-1].ts).toLocaleDateString([],{month:"short",day:"numeric"})
+      : "No interactions yet";
+    d.innerHTML = `
+      <div class="person-avatar">${initials}</div>
+      <div class="person-info">
+        <div class="person-name">${p.name}</div>
+        <div class="person-meta">${p.relationship||"Relationship unknown"} · Last: ${lastSeen}</div>
+      </div>
+      <div class="person-badge">${p.interactions?.length||0} logs</div>`;
+    list.appendChild(d);
+  });
+}
+
+function addPerson() {
+  const inp = document.getElementById("peopleinput");
+  if (!inp.value.trim()) return;
+  const person = {
+    id: Date.now().toString(),
+    name: inp.value.trim(),
+    relationship: "",
+    interactions: [],
+    profile: ""
+  };
+  people.push(person);
+  inp.value = "";
+  renderPeople();
+  pushSync();
+}
+
+function openPerson(id) {
+  currentPersonId = id;
+  const p = people.find(x => x.id === id);
+  if (!p) return;
+  document.getElementById("peoplelist").style.display = "none";
+  document.getElementById("person-detail").style.display = "block";
+  document.getElementById("person-name-title").textContent = p.name;
+  document.getElementById("person-rel-title").textContent = p.relationship || "Relationship not set";
+  document.getElementById("person-rel-input").value = p.relationship || "";
+  document.getElementById("person-log-input").value = "";
+  if (p.profile) {
+    showPersonProfile(p.profile);
+  } else {
+    document.getElementById("person-profile-box").style.display = "none";
+  }
+  renderInteractions(p);
+}
+
+function closePerson() {
+  currentPersonId = null;
+  document.getElementById("peoplelist").style.display = "block";
+  document.getElementById("person-detail").style.display = "none";
+}
+
+function savePersonRel() {
+  const p = people.find(x => x.id === currentPersonId);
+  if (!p) return;
+  p.relationship = document.getElementById("person-rel-input").value.trim();
+  document.getElementById("person-rel-title").textContent = p.relationship || "Relationship not set";
+  pushSync();
+}
+
+function logPersonInteraction() {
+  const p = people.find(x => x.id === currentPersonId);
+  if (!p) return;
+  const text = document.getElementById("person-log-input").value.trim();
+  if (!text) return;
+  const sentiment = document.getElementById("person-log-sentiment").value;
+  p.interactions.push({ ts: new Date().toISOString(), text, sentiment });
+  document.getElementById("person-log-input").value = "";
+  renderInteractions(p);
+  pushSync();
+  // Auto-update APLOS memory with this interaction
+  const memNote = `Had interaction with ${p.name} (${p.relationship||"contact"}): ${text.slice(0,80)}`;
+  if (!memories.includes(memNote)) {
+    memories.push(memNote);
+    renderMems();
+  }
+  pushSync();
+}
+
+function renderInteractions(p) {
+  const el = document.getElementById("person-interactions");
+  el.innerHTML = "";
+  if (!p.interactions?.length) {
+    el.innerHTML = '<div class="empty" style="margin-top:20px">No interactions logged yet.</div>';
+    return;
+  }
+  [...p.interactions].reverse().forEach(i => {
+    const d = document.createElement("div");
+    d.className = "interaction-item";
+    const ts = new Date(i.ts);
+    d.innerHTML = `
+      <div class="interaction-meta">
+        <span>${ts.toLocaleDateString([],{month:"short",day:"numeric",year:"numeric"})}</span>
+        <span>${ts.toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})}</span>
+        <span class="sentiment-pill s-${i.sentiment}">${i.sentiment}</span>
+      </div>
+      <div class="interaction-text">${i.text}</div>`;
+    el.appendChild(d);
+  });
+}
+
+async function analyzePersonProfile() {
+  const p = people.find(x => x.id === currentPersonId);
+  if (!p || !p.interactions?.length) {
+    alert("Log at least one interaction before analyzing.");
+    return;
+  }
+  const box = document.getElementById("person-profile-box");
+  box.style.display = "block";
+  box.innerHTML = `<div class="thinking-state"><div class="spinner"></div>APLOS is building ${p.name}'s profile…</div>`;
+
+  try {
+    const prompt = `You are APLOS building a profile on a person based on observed interactions.
+
+Person: ${p.name}
+Relationship: ${p.relationship || "unknown"}
+
+Interaction log:
+${p.interactions.map(i => `[${new Date(i.ts).toLocaleDateString()}] (${i.sentiment}) ${i.text}`).join("\n")}
+
+Build a profile covering:
+1. Personality traits observed
+2. Communication style
+3. Emotional patterns
+4. Possible intentions or motivations
+5. Trust assessment based on interactions
+6. Things to be aware of or watch for
+7. How to best interact with this person
+
+Be direct and analytical. Write as APLOS — a sharp observer building a real-world model of this person. Under 250 words.`;
+
+    const res = await fetch(workerUrl + "/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-6",
+        max_tokens: 600,
+        messages: [{ role: "user", content: prompt }]
+      })
+    });
+    const data = await res.json();
+    const profile = data.content?.[0]?.text || "Could not generate profile.";
+    p.profile = profile;
+    pushSync();
+    showPersonProfile(profile);
+  } catch(e) {
+    box.innerHTML = `<div class="profile-section"><div class="profile-section-body" style="color:#FF6B6B">Profile generation failed. Try again.</div></div>`;
+  }
+}
+
+function showPersonProfile(profile) {
+  const box = document.getElementById("person-profile-box");
+  box.style.display = "block";
+  box.innerHTML = `
+    <div class="profile-section">
+      <div class="profile-section-title">◆ APLOS Profile · ${people.find(x=>x.id===currentPersonId)?.name||""}</div>
+      <div class="profile-section-body">${profile.replace(/\n/g,"<br>")}</div>
+    </div>`;
 }
 
 // ── Init ───────────────────────────────────────────────
