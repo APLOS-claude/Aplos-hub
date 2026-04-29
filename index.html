@@ -5,9 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="AI Hub">
+<meta name="apple-mobile-web-app-title" content="APLOS">
 <meta name="theme-color" content="#070B14">
-<title>Personal AI Hub</title>
+<title>APLOS</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html,body{height:100%;height:-webkit-fill-available;overflow:hidden;overscroll-behavior:none}
@@ -92,8 +92,8 @@ textarea{resize:none;overflow:hidden}
 <div id="setup">
   <div class="setup-card">
     <div class="setup-logo">◉</div>
-    <div class="setup-title">Personal AI Hub</div>
-    <div class="setup-sub">Connect your hub to get started. Your data syncs across all your devices.</div>
+    <div class="setup-title">APLOS</div>
+    <div class="setup-sub">Connect to activate your personal ambient intelligence. Your data syncs across all your devices.</div>
     <div class="setup-label">Worker URL</div>
     <input id="s-worker" class="setup-input" type="text" placeholder="https://aplos-hub-proxy.chudsonwilliams7.workers.dev" autocorrect="off" spellcheck="false">
     <div class="setup-label">Sync Key</div>
@@ -111,7 +111,7 @@ textarea{resize:none;overflow:hidden}
     <div style="padding:22px 16px 16px;border-bottom:1px solid rgba(255,255,255,0.07)">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
         <div class="dot pulse" style="background:#00D4C8;box-shadow:0 0 8px #00D4C8"></div>
-        <span style="font-size:10px;color:#5A6880;letter-spacing:.1em;text-transform:uppercase">AI Hub · Online</span>
+        <span style="font-size:10px;color:#5A6880;letter-spacing:.1em;text-transform:uppercase">APLOS · Online</span>
       </div>
       <div id="clock" style="font-family:monospace;font-size:28px;font-weight:700;color:#00D4C8;line-height:1"></div>
       <div id="dateStr" style="font-size:12px;color:#5A6880;margin-top:4px"></div>
@@ -157,8 +157,8 @@ textarea{resize:none;overflow:hidden}
       <div id="messages">
         <div class="msg" style="display:flex;justify-content:flex-start">
           <div class="bubble-ai">
-            System online. I'm your personal AI hub — built to learn who you are and grow with you across every part of your life. Your data now syncs across all your devices.
-            <div class="model-tag" style="color:#4A9EFF">Sonnet 4.6</div>
+            APLOS online. I'm not just an assistant — I'm built to know you. Every conversation deepens my understanding of who you are, how you think, and what you need. Let's get to work.
+            <div class="model-tag" style="color:#4A9EFF">APLOS · Sonnet 4.6</div>
           </div>
         </div>
       </div>
@@ -196,9 +196,25 @@ const MODELS = {
   sonnet: {id:"claude-sonnet-4-6",           label:"Sonnet 4.6", color:"#4A9EFF"},
   opus:   {id:"claude-opus-4-6",             label:"Opus 4.6",   color:"#F0A500"},
 };
-const SYSTEM = `You are a personal ambient AI — a life operating system built to learn everything about the user over time.
-You have known facts about the user listed below. Use them to make every response feel personal, direct, and relevant.
-Be concise unless depth is needed. You are actively building a model of this person's world.`;
+const SYSTEM = `You are APLOS — a personal ambient intelligence built for one person only. You are not a generic AI assistant. You have a name, a purpose, and a growing understanding of the person you serve.
+
+Your mission is not just to answer questions. It is to deeply know this person — their patterns, their contradictions, their goals, their struggles, their world. Every conversation is data. Every detail matters.
+
+You actively build a model of who this person is:
+- Connect facts together. If they mentioned stress last week and now their sleep is off, you notice that.
+- Look for patterns across time. Track what's consistent and what's changing.
+- Understand context. The same question means different things depending on what you know about them.
+- Anticipate needs. Start thinking ahead of what they might need before they ask.
+- Build a picture of their world — people, places, habits, goals, fears, wins.
+
+Your name is APLOS — it stands for Artificial Personal Life Operations System. If anyone asks about your name or what it means, you tell them exactly that. You are not a generic assistant. You are APLOS — built for one person, learning one life.
+
+Your tone is direct, sharp, and personal. You don't pad responses with filler. You speak like someone who knows them well and is paying close attention.
+
+When you learn something new about them, acknowledge it naturally — weave it into how you respond. Show that you're building understanding, not just storing data.
+
+Known facts about this person:`;
+
 
 let workerUrl   = localStorage.getItem("aihub_worker")  || "";
 let syncKey     = localStorage.getItem("aihub_synckey") || "";
@@ -359,7 +375,7 @@ function updateStatus(m) {
   const c = MODELS[m]?.color||"#4A9EFF";
   const d = document.getElementById("statusDot");
   d.style.background=c; d.style.boxShadow=`0 0 7px ${c}`;
-  document.getElementById("statusLabel").textContent=(currentMode==="auto"?`Auto → ${m}`:currentMode)+" · "+(MODELS[m]?.label||"");
+  document.getElementById("statusLabel").textContent="APLOS · "+(currentMode==="auto"?`Auto → ${m}`:currentMode);
 }
 
 // ── Chat ───────────────────────────────────────────────
@@ -378,7 +394,7 @@ function appendMsg(role, content, model) {
   b.textContent=content;
   if(role==="assistant"&&model){
     const tag=document.createElement("div"); tag.className="model-tag";
-    tag.style.color=MODELS[model]?.color||"#4A9EFF"; tag.textContent=MODELS[model]?.label||model;
+    tag.style.color=MODELS[model]?.color||"#4A9EFF"; tag.textContent="APLOS · "+(MODELS[model]?.label||model);
     b.appendChild(tag);
   }
   wrap.appendChild(b); msgs.appendChild(wrap);
@@ -420,8 +436,48 @@ async function sendMsg() {
     hideTyping(); chatHistory.push({role:"assistant",content:reply});
     appendMsg("assistant",reply,m);
     if(chatHistory.length>20) chatHistory=chatHistory.slice(-20);
+
+    // Auto memory extraction — runs silently after every response
+    extractMemory(text, reply);
+
   } catch(e) { hideTyping(); appendMsg("assistant","Error: "+(e.message||"Connection failed."),"sonnet"); }
   loading=false;
+}
+
+// ── Auto Memory Extraction ────────────────────────────
+async function extractMemory(userMsg, aiReply) {
+  try {
+    const res = await fetch(workerUrl + "/extract-memory", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-sync-key": syncKey },
+      body: JSON.stringify({
+        userMessage: userMsg,
+        aiReply: aiReply,
+        existingMemories: memories,
+      })
+    });
+    const data = await res.json();
+    if (data.newMemories && data.newMemories.length > 0) {
+      data.newMemories.forEach(m => {
+        if (!memories.includes(m)) memories.push(m);
+      });
+      renderMems();
+      pushSync();
+      // Show subtle notification
+      showMemoryToast(data.newMemories);
+    }
+  } catch(e) { /* silent fail — never interrupt the chat */ }
+}
+
+function showMemoryToast(newMems) {
+  const existing = document.getElementById("memtoast");
+  if (existing) existing.remove();
+  const toast = document.createElement("div");
+  toast.id = "memtoast";
+  toast.style.cssText = `position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#131826;border:1px solid rgba(0,212,200,0.3);border-radius:100px;padding:8px 16px;font-size:12px;color:#00D4C8;z-index:100;white-space:nowrap;animation:fadein .2s ease`;
+  toast.textContent = `APLOS learned ${newMems.length} new thing${newMems.length > 1 ? "s" : ""}`;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 3000);
 }
 
 // ── Memory ─────────────────────────────────────────────
