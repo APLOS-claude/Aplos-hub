@@ -94,7 +94,28 @@ textarea{resize:none;overflow:hidden}
 .severity-high{background:rgba(255,77,109,0.15);color:#FF4D6D}
 .thinking-state{display:flex;align-items:center;gap:10px;padding:20px;color:#5A6880;font-size:14px}
 .spinner{width:16px;height:16px;border:2px solid rgba(0,212,200,0.2);border-top-color:#00D4C8;border-radius:50%;animation:spin 1s linear infinite;flex-shrink:0}
-/* People layer */
+/* World Intelligence */
+.world-section{margin-bottom:18px}
+.world-section-title{font-size:11px;color:#5A6880;letter-spacing:.1em;text-transform:uppercase;font-family:monospace;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.world-section-title::after{content:'';flex:1;height:1px;background:rgba(255,255,255,0.06)}
+.world-card{background:#131826;border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:13px 14px;margin-bottom:8px;animation:fadein .25s ease}
+.world-card-title{font-size:14px;font-weight:600;color:#E2E8F4;margin-bottom:4px;line-height:1.4}
+.world-card-meta{font-size:11px;color:#5A6880;margin-bottom:6px}
+.world-card-body{font-size:13px;color:#CBD5E1;line-height:1.6}
+.world-card-tag{display:inline-block;padding:3px 8px;border-radius:100px;font-size:10px;margin-top:8px;font-family:monospace}
+.tag-news{background:rgba(74,158,255,0.15);color:#4A9EFF}
+.tag-market{background:rgba(0,201,167,0.15);color:#00C9A7}
+.tag-local{background:rgba(240,165,0,0.15);color:#F0A500}
+.tag-weather{background:rgba(168,85,247,0.15);color:#A855F7}
+.tag-alert{background:rgba(255,77,109,0.15);color:#FF4D6D}
+.ticker-pill{display:flex;align-items:center;gap:5px;padding:5px 10px;background:#1B2338;border:1px solid rgba(255,255,255,0.08);border-radius:100px;font-size:12px;font-family:monospace;color:#E2E8F4;cursor:default}
+.ticker-remove{background:none;border:none;color:#5A6880;cursor:pointer;font-size:14px;padding:0;line-height:1}
+.stock-up{color:#00C9A7}
+.stock-down{color:#FF4D6D}
+.aplos-brief{background:linear-gradient(135deg,rgba(0,212,200,0.08),rgba(74,158,255,0.08));border:1px solid rgba(0,212,200,0.2);border-radius:14px;padding:16px;margin-bottom:16px}
+.aplos-brief-label{font-size:10px;color:#00D4C8;letter-spacing:.1em;text-transform:uppercase;font-family:monospace;margin-bottom:8px}
+.aplos-brief-text{font-size:14px;color:#E2E8F4;line-height:1.7}
+
 .person-card{display:flex;align-items:center;gap:12px;padding:12px 14px;background:#131826;border-radius:12px;border:1px solid rgba(255,255,255,0.07);margin-bottom:8px;cursor:pointer;transition:all .18s;animation:fadein .2s ease}
 .person-card:hover{border-color:rgba(0,212,200,0.25);background:rgba(0,212,200,0.04)}
 .person-avatar{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,rgba(0,212,200,0.3),rgba(74,158,255,0.3));display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:#E2E8F4;flex-shrink:0;text-transform:uppercase}
@@ -161,6 +182,7 @@ textarea{resize:none;overflow:hidden}
 
     <div style="padding:10px 8px;flex:1">
       <button class="nav-btn active" data-tab="chat"    onclick="switchTab('chat')"><span style="font-size:11px">◉</span>Chat</button>
+      <button class="nav-btn"        data-tab="world"   onclick="switchTab('world')"><span style="font-size:11px">◬</span>World</button>
       <button class="nav-btn"        data-tab="people"  onclick="switchTab('people')"><span style="font-size:11px">◈</span>People</button>
       <button class="nav-btn"        data-tab="insights" onclick="switchTab('insights')"><span style="font-size:11px">◆</span>Insights</button>
       <button class="nav-btn"        data-tab="memory"  onclick="switchTab('memory')"><span style="font-size:11px">◎</span>Memory</button>
@@ -216,6 +238,31 @@ textarea{resize:none;overflow:hidden}
           <div class="vtoggle-dot"></div>APLOS speaks responses
         </button>
         <span class="voice-status" id="voiceStatus">Ready</span>
+      </div>
+    </div>
+
+    <!-- World Intelligence panel -->
+    <div id="panel-world" class="panel">
+      <p class="section-desc">APLOS monitors the world and surfaces what matters to you — news, markets, local events, and weather in real time.</p>
+
+      <!-- Watchlist input -->
+      <div style="margin-bottom:16px">
+        <div style="font-size:11px;color:#5A6880;letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px">Stock / Crypto Watchlist</div>
+        <div class="add-row" style="margin-bottom:0">
+          <input id="tickerinput" class="add-input" placeholder="Add ticker (AAPL, BTC, ETH…)" style="text-transform:uppercase" onkeydown="if(event.key==='Enter')addTicker()">
+          <button class="add-btn" onclick="addTicker()">+</button>
+        </div>
+        <div id="tickerlist" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:10px"></div>
+      </div>
+
+      <!-- Refresh button -->
+      <button onclick="loadWorldIntel()" id="worldRefreshBtn" style="width:100%;padding:12px;background:rgba(0,212,200,0.1);border:1px solid rgba(0,212,200,0.25);border-radius:12px;color:#00D4C8;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;margin-bottom:16px;display:flex;align-items:center;justify-content:center;gap:8px">
+        <span>◬</span> Refresh World Intelligence
+      </button>
+
+      <!-- World feed -->
+      <div id="world-feed">
+        <div class="empty">Tap Refresh to load your world intelligence feed.</div>
       </div>
     </div>
 
@@ -481,10 +528,10 @@ function closeSidebar()  { sidebarOpen=false; document.getElementById("sidebar")
 // ── Tabs ───────────────────────────────────────────────
 function switchTab(t) {
   currentTab = t; closeSidebar();
-  document.getElementById("tabTitle").textContent = t==="chat"?"Chat":t==="people"?"People":t==="insights"?"APLOS Insights":t==="memory"?"Memory Bank":"Daily Log";
+  document.getElementById("tabTitle").textContent = t==="chat"?"Chat":t==="world"?"World Intelligence":t==="people"?"People":t==="insights"?"APLOS Insights":t==="memory"?"Memory Bank":"Daily Log";
   document.querySelectorAll(".nav-btn").forEach(b => b.classList.toggle("active", b.dataset.tab===t));
   document.getElementById("panel-chat").style.display = t==="chat" ? "flex" : "none";
-  ["people","insights","memory","log"].forEach(id => document.getElementById("panel-"+id).style.display = id===t?"block":"none");
+  ["world","people","insights","memory","log"].forEach(id => document.getElementById("panel-"+id).style.display = id===t?"block":"none");
   if (t==="memory") renderMems();
   if (t==="log")    renderLogs();
   if (t==="people") renderPeople();
@@ -942,6 +989,154 @@ function addLog(){
   renderLogs(); pushSync();
 }
 
+// ── World Intelligence ────────────────────────────────
+let watchlist = JSON.parse(localStorage.getItem("aplos_watchlist") || '["AAPL","BTC","SPY"]');
+
+function renderTickers() {
+  const el = document.getElementById("tickerlist");
+  if (!el) return;
+  el.innerHTML = "";
+  watchlist.forEach((t,i) => {
+    const pill = document.createElement("div");
+    pill.className = "ticker-pill";
+    pill.innerHTML = `${t}<button class="ticker-remove" onclick="removeTicker(${i})">×</button>`;
+    el.appendChild(pill);
+  });
+}
+
+function addTicker() {
+  const inp = document.getElementById("tickerinput");
+  const val = inp.value.trim().toUpperCase();
+  if (!val || watchlist.includes(val)) { inp.value=""; return; }
+  watchlist.push(val);
+  localStorage.setItem("aplos_watchlist", JSON.stringify(watchlist));
+  inp.value = "";
+  renderTickers();
+}
+
+function removeTicker(i) {
+  watchlist.splice(i,1);
+  localStorage.setItem("aplos_watchlist", JSON.stringify(watchlist));
+  renderTickers();
+}
+
+async function loadWorldIntel() {
+  const feed = document.getElementById("world-feed");
+  const btn  = document.getElementById("worldRefreshBtn");
+  feed.innerHTML = `<div class="thinking-state"><div class="spinner"></div>APLOS scanning the world…</div>`;
+  btn.disabled = true; btn.style.opacity = "0.5";
+
+  const location = "St. Petersburg, Florida";
+  const tickers  = watchlist.join(", ");
+
+  const prompt = `You are APLOS's world intelligence engine. Generate a real-time briefing for your user.
+
+User location: ${location}
+Stock/crypto watchlist: ${tickers}
+User memories and context:
+${memories.slice(0,10).map(m=>"• "+m).join("\n")}
+
+Generate a comprehensive world intelligence briefing covering:
+
+1. TOP NEWS (3-4 items): Most important global/US news right now. For each: headline, 1-sentence summary, relevance to the user if any.
+
+2. MARKETS (for each ticker in watchlist): Current price direction (up/down/flat), key driver today, any major moves.
+
+3. LOCAL (${location}): 2-3 things happening locally — events, weather, anything notable.
+
+4. APLOS BRIEF: A 2-3 sentence personal summary tying together what's happening in the world and how it might be relevant to this specific person based on what you know about them.
+
+Format as JSON:
+{
+  "news": [{"headline":"...","summary":"...","tag":"breaking|tech|finance|health|local","relevance":"..."}],
+  "markets": [{"ticker":"...","direction":"up|down|flat","note":"...","alert":true|false}],
+  "local": [{"title":"...","detail":"...","type":"event|weather|alert"}],
+  "brief": "APLOS's personal world summary for this person"
+}
+
+Use your training knowledge to generate realistic, plausible current intelligence. Be specific and useful.`;
+
+  try {
+    const res = await fetch(workerUrl + "/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-6",
+        max_tokens: 1200,
+        messages: [{ role: "user", content: prompt }]
+      })
+    });
+    const data = await res.json();
+    const text = data.content?.[0]?.text || "";
+    const clean = text.replace(/```json|```/g,"").trim();
+    const intel = JSON.parse(clean);
+    renderWorldFeed(intel);
+  } catch(e) {
+    feed.innerHTML = `<div class="world-card"><div class="world-card-body" style="color:#FF6B6B">Could not load world intelligence. Try again.</div></div>`;
+  }
+  btn.disabled = false; btn.style.opacity = "1";
+}
+
+function renderWorldFeed(intel) {
+  const feed = document.getElementById("world-feed");
+  let html = "";
+
+  // APLOS Brief
+  if (intel.brief) {
+    html += `<div class="aplos-brief">
+      <div class="aplos-brief-label">◉ APLOS Brief</div>
+      <div class="aplos-brief-text">${intel.brief}</div>
+    </div>`;
+  }
+
+  // News
+  if (intel.news?.length) {
+    html += `<div class="world-section"><div class="world-section-title">Breaking News</div>`;
+    intel.news.forEach(n => {
+      html += `<div class="world-card">
+        <div class="world-card-title">${n.headline}</div>
+        <div class="world-card-body">${n.summary}</div>
+        ${n.relevance ? `<div class="world-card-meta" style="margin-top:6px;color:#00D4C8;font-size:12px">↳ ${n.relevance}</div>` : ""}
+        <span class="world-card-tag tag-news">${n.tag||"news"}</span>
+      </div>`;
+    });
+    html += `</div>`;
+  }
+
+  // Markets
+  if (intel.markets?.length) {
+    html += `<div class="world-section"><div class="world-section-title">Markets</div>`;
+    intel.markets.forEach(m => {
+      const arrow = m.direction==="up"?"↑":m.direction==="down"?"↓":"→";
+      const color = m.direction==="up"?"stock-up":m.direction==="down"?"stock-down":"";
+      html += `<div class="world-card" style="${m.alert?"border-color:rgba(240,165,0,0.3)":""}">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+          <span style="font-family:monospace;font-size:15px;font-weight:700">${m.ticker}</span>
+          <span class="${color}" style="font-size:14px;font-weight:600">${arrow} ${m.direction.toUpperCase()}</span>
+          ${m.alert?'<span class="world-card-tag tag-alert" style="margin:0">⚠ Alert</span>':""}
+        </div>
+        <div class="world-card-body">${m.note}</div>
+      </div>`;
+    });
+    html += `</div>`;
+  }
+
+  // Local
+  if (intel.local?.length) {
+    html += `<div class="world-section"><div class="world-section-title">St. Pete · Local</div>`;
+    intel.local.forEach(l => {
+      html += `<div class="world-card">
+        <div class="world-card-title">${l.title}</div>
+        <div class="world-card-body">${l.detail}</div>
+        <span class="world-card-tag tag-${l.type==="weather"?"weather":l.type==="alert"?"alert":"local"}">${l.type}</span>
+      </div>`;
+    });
+    html += `</div>`;
+  }
+
+  feed.innerHTML = html || '<div class="empty">No intelligence data returned.</div>';
+}
+
 // ── People Layer ──────────────────────────────────────
 function renderPeople() {
   const list = document.getElementById("peoplelist");
@@ -1126,6 +1321,7 @@ window.addEventListener("load", async () => {
     await loadFromCloud();
     launch();
     initVoice();
+    renderTickers();
   }
 });
 </script>
