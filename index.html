@@ -94,6 +94,27 @@ textarea{resize:none;overflow:hidden}
 .severity-high{background:rgba(255,77,109,0.15);color:#FF4D6D}
 .thinking-state{display:flex;align-items:center;gap:10px;padding:20px;color:#5A6880;font-size:14px}
 .spinner{width:16px;height:16px;border:2px solid rgba(0,212,200,0.2);border-top-color:#00D4C8;border-radius:50%;animation:spin 1s linear infinite;flex-shrink:0}
+/* Vitals */
+.vital-card{background:#131826;border:1px solid rgba(255,255,255,0.07);border-radius:14px;padding:14px;position:relative;overflow:hidden;animation:fadein .3s ease}
+.vital-icon{font-size:18px;margin-bottom:8px}
+.vital-label{font-size:10px;color:#5A6880;text-transform:uppercase;letter-spacing:.1em;font-family:monospace;margin-bottom:4px}
+.vital-value{font-family:monospace;font-size:26px;font-weight:700;line-height:1}
+.vital-unit{font-size:11px;color:#5A6880;margin-left:2px}
+.vital-sub{font-size:11px;color:#5A6880;margin-top:5px}
+.vital-bar{height:3px;background:rgba(255,255,255,0.06);border-radius:2px;margin-top:10px;overflow:hidden}
+.vital-bar-fill{height:100%;border-radius:2px;transition:width 1.2s ease}
+.vital-dot{position:absolute;top:12px;right:12px;width:7px;height:7px;border-radius:50%}
+.vital-dot.normal{background:#00C9A7}
+.vital-dot.warning{background:#F0A500;animation:glow 1.5s ease-in-out infinite}
+.vital-dot.alert{background:#FF4D6D;animation:glow 1s ease-in-out infinite}
+.anomaly-banner{padding:12px 14px;border-radius:12px;margin-bottom:8px;display:flex;align-items:flex-start;gap:10px;animation:fadein .3s ease}
+.anomaly-banner.medium{background:rgba(240,165,0,0.1);border:1px solid rgba(240,165,0,0.25)}
+.anomaly-banner.high{background:rgba(255,77,109,0.1);border:1px solid rgba(255,77,109,0.3)}
+.baseline-row2{display:flex;align-items:center;gap:10px;padding:10px 14px;background:#131826;border:1px solid rgba(255,255,255,0.07);border-radius:10px;margin-bottom:7px}
+.baseline-label2{flex:1;font-size:13px;color:#CBD5E1}
+.baseline-track2{flex:2;height:5px;background:rgba(255,255,255,0.06);border-radius:3px;overflow:hidden}
+.baseline-fill2{height:100%;border-radius:3px}
+.baseline-val2{font-family:monospace;font-size:12px;color:#E2E8F4;min-width:50px;text-align:right}
 /* World Intelligence */
 .world-section{margin-bottom:18px}
 .world-section-title{font-size:11px;color:#5A6880;letter-spacing:.1em;text-transform:uppercase;font-family:monospace;margin-bottom:10px;display:flex;align-items:center;gap:8px}
@@ -182,6 +203,7 @@ textarea{resize:none;overflow:hidden}
 
     <div style="padding:10px 8px;flex:1">
       <button class="nav-btn active" data-tab="chat"    onclick="switchTab('chat')"><span style="font-size:11px">◉</span>Chat</button>
+      <button class="nav-btn"        data-tab="vitals"  onclick="switchTab('vitals')"><span style="font-size:11px">♡</span>Vitals</button>
       <button class="nav-btn"        data-tab="world"   onclick="switchTab('world')"><span style="font-size:11px">◬</span>World</button>
       <button class="nav-btn"        data-tab="people"  onclick="switchTab('people')"><span style="font-size:11px">◈</span>People</button>
       <button class="nav-btn"        data-tab="insights" onclick="switchTab('insights')"><span style="font-size:11px">◆</span>Insights</button>
@@ -238,6 +260,51 @@ textarea{resize:none;overflow:hidden}
           <div class="vtoggle-dot"></div>APLOS speaks responses
         </button>
         <span class="voice-status" id="voiceStatus">Ready</span>
+      </div>
+    </div>
+
+    <!-- Vitals panel -->
+    <div id="panel-vitals" class="panel">
+      <p class="section-desc">Your body data from Apple Watch — live readings, 7-day baselines, and APLOS anomaly alerts.</p>
+
+      <!-- Status -->
+      <div id="vitals-status" style="margin-bottom:16px"></div>
+
+      <!-- Anomaly alerts -->
+      <div id="vitals-alerts" style="margin-bottom:16px"></div>
+
+      <!-- Latest readings grid -->
+      <div id="vitals-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px"></div>
+
+      <!-- Baseline section -->
+      <div id="vitals-baseline" style="margin-bottom:16px"></div>
+
+      <!-- Setup instructions -->
+      <div id="vitals-setup">
+        <div style="background:#131826;border:1px dashed rgba(255,255,255,0.1);border-radius:16px;padding:24px;text-align:center">
+          <div style="font-size:32px;margin-bottom:12px">⌚</div>
+          <div style="font-size:16px;font-weight:600;margin-bottom:8px">Apple Watch Not Connected</div>
+          <div style="font-size:13px;color:#5A6880;line-height:1.7;margin-bottom:20px">When your Apple Watch Series 11 arrives, follow these steps to start streaming your vitals to APLOS automatically.</div>
+
+          <div style="text-align:left;margin-bottom:20px">
+            <div style="font-size:11px;color:#5A6880;letter-spacing:.08em;text-transform:uppercase;margin-bottom:12px">Setup Steps</div>
+            ${[
+              "Open Apple Health app → make sure all health categories are enabled",
+              "Download the Shortcuts app if not already installed",
+              "Create a new Automation → set it to run Every Hour",
+              "Add action: Get Health Samples (Heart Rate, HRV, SpO2, Steps, etc)",
+              "Add action: Get Contents of URL → paste your Worker URL below",
+              "Set Method to POST, add your vitals as JSON body",
+              "Turn on the automation — APLOS receives your data automatically"
+            ].map((s,i)=>`<div style="display:flex;gap:10px;margin-bottom:10px;font-size:13px;color:#CBD5E1;line-height:1.5"><span style="color:#00D4C8;font-family:monospace;flex-shrink:0">${i+1}.</span>${s}</div>`).join("")}
+          </div>
+
+          <div style="font-size:11px;color:#5A6880;margin-bottom:8px;letter-spacing:.05em">Your Worker Vitals URL</div>
+          <div id="vitals-url" style="background:#1B2338;border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:10px 14px;font-family:monospace;font-size:12px;color:#00D4C8;word-break:break-all;margin-bottom:16px;text-align:left"></div>
+
+          <div style="font-size:11px;color:#5A6880;margin-bottom:8px">Test with a manual reading right now:</div>
+          <button onclick="sendTestVitals()" style="padding:10px 20px;background:rgba(0,212,200,0.1);border:1px solid rgba(0,212,200,0.25);border-radius:100px;color:#00D4C8;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">Send Test Reading</button>
+        </div>
       </div>
     </div>
 
@@ -528,13 +595,14 @@ function closeSidebar()  { sidebarOpen=false; document.getElementById("sidebar")
 // ── Tabs ───────────────────────────────────────────────
 function switchTab(t) {
   currentTab = t; closeSidebar();
-  document.getElementById("tabTitle").textContent = t==="chat"?"Chat":t==="world"?"World Intelligence":t==="people"?"People":t==="insights"?"APLOS Insights":t==="memory"?"Memory Bank":"Daily Log";
+  document.getElementById("tabTitle").textContent = t==="chat"?"Chat":t==="vitals"?"Vitals":t==="world"?"World Intelligence":t==="people"?"People":t==="insights"?"APLOS Insights":t==="memory"?"Memory Bank":"Daily Log";
   document.querySelectorAll(".nav-btn").forEach(b => b.classList.toggle("active", b.dataset.tab===t));
   document.getElementById("panel-chat").style.display = t==="chat" ? "flex" : "none";
-  ["world","people","insights","memory","log"].forEach(id => document.getElementById("panel-"+id).style.display = id===t?"block":"none");
+  ["vitals","world","people","insights","memory","log"].forEach(id => document.getElementById("panel-"+id).style.display = id===t?"block":"none");
   if (t==="memory") renderMems();
   if (t==="log")    renderLogs();
   if (t==="people") renderPeople();
+  if (t==="vitals") loadVitals();
 }
 
 // ── Mode ───────────────────────────────────────────────
@@ -987,6 +1055,146 @@ function addLog(){
   const inp=document.getElementById("loginput"); if(!inp.value.trim())return;
   logs.push({text:inp.value.trim(),ts:new Date().toISOString()}); inp.value="";
   renderLogs(); pushSync();
+}
+
+// ── Vitals Engine ─────────────────────────────────────
+async function loadVitals() {
+  // Show worker URL for setup
+  const urlEl = document.getElementById("vitals-url");
+  if (urlEl) urlEl.textContent = workerUrl + "/vitals";
+
+  try {
+    const res = await fetch(workerUrl + "/vitals", {
+      headers: { "x-sync-key": syncKey }
+    });
+    const data = await res.json();
+    if (data.latest) {
+      document.getElementById("vitals-setup").style.display = "none";
+      renderVitals(data.latest, data.baselines);
+      renderAnomalies(detectClientAnomalies(data.latest, data.baselines));
+      renderBaselines(data.baselines);
+    }
+  } catch(e) { /* show setup state */ }
+}
+
+function renderVitals(v, baselines) {
+  const grid = document.getElementById("vitals-grid");
+  const ts   = new Date(v.ts);
+  document.getElementById("vitals-status").innerHTML = `
+    <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:#5A6880;margin-bottom:4px">
+      <div class="dot pulse" style="background:#00C9A7;box-shadow:0 0 6px #00C9A7"></div>
+      Last reading: ${ts.toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})} · ${ts.toLocaleDateString([],{month:"short",day:"numeric"})}
+    </div>`;
+
+  const vitals = [
+    { key:"heartRate",       icon:"❤️", label:"Heart Rate",    unit:"bpm", color:"#FF4D6D", max:200 },
+    { key:"hrv",             icon:"〜", label:"HRV",           unit:"ms",  color:"#00C9A7", max:100 },
+    { key:"spo2",            icon:"🫁", label:"Blood Oxygen",  unit:"%",   color:"#4A9EFF", max:100 },
+    { key:"steps",           icon:"👟", label:"Steps",         unit:"",    color:"#00D4C8", max:10000 },
+    { key:"calories",        icon:"🔥", label:"Active Cal",    unit:"kcal",color:"#F0A500", max:1000 },
+    { key:"respiratoryRate", icon:"💨", label:"Resp. Rate",    unit:"rpm", color:"#A855F7", max:30 },
+    { key:"bodyTemp",        icon:"🌡️", label:"Body Temp",     unit:"°F",  color:"#FF6B6B", max:105 },
+    { key:"sleepHours",      icon:"💤", label:"Sleep",         unit:"hrs", color:"#4A9EFF", max:12 },
+  ];
+
+  grid.innerHTML = vitals.map(vt => {
+    const val = v[vt.key];
+    if (val == null) return "";
+    const base = baselines?.[vt.key];
+    const pct  = Math.min(100, Math.round((val / vt.max) * 100));
+    const status = base ? (val < base.avg7*0.75||val > base.avg7*1.25 ? "alert" : val < base.avg7*0.85||val > base.avg7*1.15 ? "warning" : "normal") : "normal";
+    const diff = base ? Math.round(((val-base.avg7)/base.avg7)*100) : null;
+    const diffStr = diff!=null ? `${diff>0?"+":""}${diff}% vs avg` : "Building baseline…";
+    return `<div class="vital-card">
+      <div class="vital-dot ${status}"></div>
+      <div class="vital-icon">${vt.icon}</div>
+      <div class="vital-label">${vt.label}</div>
+      <div class="vital-value" style="color:${vt.color}">${typeof val==="number"&&!Number.isInteger(val)?val.toFixed(1):val}<span class="vital-unit">${vt.unit}</span></div>
+      <div class="vital-sub">${diffStr}</div>
+      <div class="vital-bar"><div class="vital-bar-fill" style="width:${pct}%;background:${vt.color}"></div></div>
+    </div>`;
+  }).join("");
+}
+
+function detectClientAnomalies(reading, baselines) {
+  if (!baselines) return [];
+  const anomalies = [];
+  const checks = [
+    { field:"heartRate",       label:"Heart Rate",       low:.75, high:1.25, unit:"bpm" },
+    { field:"hrv",             label:"HRV",              low:.60, high:1.50, unit:"ms"  },
+    { field:"spo2",            label:"Blood Oxygen",     low:.95, high:null, unit:"%"   },
+    { field:"respiratoryRate", label:"Respiratory Rate", low:.75, high:1.30, unit:"rpm" },
+    { field:"bodyTemp",        label:"Body Temp",        low:.98, high:1.02, unit:"°F"  },
+  ];
+  checks.forEach(c => {
+    const val  = reading[c.field];
+    const base = baselines?.[c.field];
+    if (val==null||!base) return;
+    const avg = base.avg7;
+    if (c.low  && val < avg*c.low)  anomalies.push({ field:c.label, value:val, avg, direction:"low",  severity:val<avg*.70?"high":"medium", unit:c.unit });
+    if (c.high && val > avg*c.high) anomalies.push({ field:c.label, value:val, avg, direction:"high", severity:val>avg*1.40?"high":"medium", unit:c.unit });
+  });
+  return anomalies;
+}
+
+function renderAnomalies(anomalies) {
+  const el = document.getElementById("vitals-alerts");
+  if (!anomalies.length) {
+    el.innerHTML = `<div style="display:flex;align-items:center;gap:8px;padding:10px 14px;background:rgba(0,201,167,0.08);border:1px solid rgba(0,201,167,0.2);border-radius:10px;font-size:13px;color:#00C9A7">✓ All vitals within your normal range</div>`;
+    return;
+  }
+  el.innerHTML = anomalies.map(a => `
+    <div class="anomaly-banner ${a.severity}">
+      <span style="font-size:16px">${a.severity==="high"?"🚨":"⚠️"}</span>
+      <div>
+        <div style="font-size:13px;font-weight:600;color:#E2E8F4;margin-bottom:3px">${a.field} is ${a.direction === "low" ? "below" : "above"} normal</div>
+        <div style="font-size:12px;color:#CBD5E1">Current: ${a.value}${a.unit} · Your average: ${a.avg}${a.unit}</div>
+      </div>
+    </div>`).join("");
+}
+
+function renderBaselines(baselines) {
+  if (!baselines) return;
+  const el = document.getElementById("vitals-baseline");
+  const items = [
+    { key:"heartRate",  label:"Heart Rate", color:"#FF4D6D", unit:"bpm", min:40,  max:120 },
+    { key:"hrv",        label:"HRV",        color:"#00C9A7", unit:"ms",  min:10,  max:100 },
+    { key:"spo2",       label:"SpO2",       color:"#4A9EFF", unit:"%",   min:90,  max:100 },
+    { key:"steps",      label:"Daily Steps",color:"#00D4C8", unit:"",    min:0,   max:15000 },
+  ];
+  el.innerHTML = `<div style="font-size:11px;color:#5A6880;letter-spacing:.1em;text-transform:uppercase;font-family:monospace;margin-bottom:10px">7-Day Baseline</div>` +
+    items.map(item => {
+      const b = baselines[item.key];
+      if (!b) return "";
+      const pct = Math.min(95, Math.max(5, Math.round(((b.avg7-item.min)/(item.max-item.min))*100)));
+      return `<div class="baseline-row2">
+        <div class="baseline-label2">${item.label}</div>
+        <div class="baseline-track2"><div class="baseline-fill2" style="width:${pct}%;background:${item.color}"></div></div>
+        <div class="baseline-val2">${b.avg7}<span style="color:#5A6880;font-size:10px"> ${item.unit}</span></div>
+      </div>`;
+    }).join("");
+}
+
+async function sendTestVitals() {
+  const test = {
+    heartRate: 72, hrv: 54, spo2: 98,
+    respiratoryRate: 14, steps: 3240,
+    calories: 280, bodyTemp: 98.4, sleepHours: 7.2
+  };
+  try {
+    const res = await fetch(workerUrl + "/vitals", {
+      method: "POST",
+      headers: { "Content-Type":"application/json", "x-sync-key": syncKey },
+      body: JSON.stringify(test)
+    });
+    const data = await res.json();
+    if (data.ok) {
+      showMemoryToast(["Test vitals reading sent successfully"]);
+      loadVitals();
+    }
+  } catch(e) {
+    alert("Could not send test reading. Check your Worker is deployed.");
+  }
 }
 
 // ── World Intelligence ────────────────────────────────
